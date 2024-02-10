@@ -1,2 +1,3 @@
 # DATAFLOW
-<img width="876" alt="image" src="https://github.com/OleksiiDatsiuk/dataflow/assets/47336461/e77bbc93-2931-4bca-bcbf-92da8c1cc824">
+<img width="758" alt="image" src="https://github.com/OleksiiDatsiuk/dataflow/assets/47336461/9643c039-4c15-4274-a866-2bf87e282d2f">
+
