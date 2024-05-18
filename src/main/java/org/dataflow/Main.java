@@ -11,10 +11,8 @@ public class Main {
 
     @SneakyThrows
     public static void main(String[] args) {
-        AbstractBroker broker = ManagedBroker.getInstance(123, "Broker1");
+        AbstractBroker broker = ManagedBroker.getInstance(2023, "Broker1");
         broker.run();
-        TimeUnit.SECONDS.sleep(20);
-        broker.shutDown();
     }
 
 }

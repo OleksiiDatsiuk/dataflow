@@ -1,12 +1,14 @@
 package org.dataflow.broker;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.dataflow.server.AbstractServer;
 import org.dataflow.data.Topic;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Getter
 public abstract class AbstractBroker extends AbstractServer {
 
@@ -28,6 +30,8 @@ public abstract class AbstractBroker extends AbstractServer {
         Topic topic = this.topics.get(topicName);
 
         if (topic == null) {
+            log.info("Topic {} not found. Creating new topic.", topicName);
+
             topic = Topic.builder()
                     .name(topicName)
                     .numberOfPartitions(5)

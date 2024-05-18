@@ -38,7 +38,7 @@ public class ManagedBroker extends AbstractBroker{
         log.info("Server successfully started on address {}:{}", socket.getInetAddress().getHostAddress(),
                 socket.getLocalPort());
 
-        executorService.submit(() -> this.processRequests(connectionManager::processConnection));
+        this.processRequests(connectionManager::processConnection);
     }
 
 }

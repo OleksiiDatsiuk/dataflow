@@ -1,9 +1,10 @@
-package org.dataflow.server;
+package org.dataflow.producer.server;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dataflow.exception.InternalServerError;
-import org.dataflow.util.SocketCommunicator;
+import org.dataflow.producer.exception.InternalServerError;
+import org.dataflow.producer.util.SocketCommunicator;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractServer {
@@ -65,13 +67,9 @@ public abstract class AbstractServer {
     private void handleClient(Socket clientSocket, BiConsumer<String, Socket> subscriber) {
         log.info("Successfully established connection to {}", clientSocket.getInetAddress());
 
-        while (!clientSocket.isClosed()){
-            String input = SocketCommunicator.receiveMessage(clientSocket);
-            if (input.isEmpty()) {
-                continue;
-            }
-
-            executorService.execute(() -> subscriber.accept(input, clientSocket));
+        while (!clientSocket.isClosed()) {
+            BufferedReader clientInput = SocketCommunicator.receiveMessage(clientSocket);
+            executorService.execute(() -> subscriber.accept(clientInput.lines().collect(Collectors.joining()), clientSocket));
         }
     }
 
