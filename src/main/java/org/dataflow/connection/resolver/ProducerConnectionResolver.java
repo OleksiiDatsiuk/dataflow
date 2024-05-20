@@ -13,14 +13,12 @@ import org.dataflow.model.ProducerMessage;
 @RequiredArgsConstructor
 public class ProducerConnectionResolver implements Resolvable {
 
-    private final Serializer serializer;
-
     @Override
     public void resolve(BrokerConnection brokerConnection, NodeRequest nodeRequest) {
         log.info("Resolving producer connection for ip: {} and port: {}", brokerConnection.socket().getInetAddress(), brokerConnection.socket().getPort());
 
         ManagedBroker broker = ManagedBroker.getInstance();
-        ProducerMessage producerMessage = serializer.parseToProducerMessage(nodeRequest.message());
+        ProducerMessage producerMessage = Serializer.parseToProducerMessage(nodeRequest.message());
         Topic topic = broker.getOrCreateTopic(producerMessage.topic());
         log.info("Producing message {} to topic {}", producerMessage.message(), producerMessage.topic());
         topic.addMessage(producerMessage.message());

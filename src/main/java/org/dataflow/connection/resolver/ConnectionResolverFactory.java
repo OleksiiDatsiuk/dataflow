@@ -10,7 +10,7 @@ public final class ConnectionResolverFactory {
 
     public static Resolvable getResolver(ConnectionType connectionType) {
         return switch (connectionType) {
-            case PRODUCER -> new ProducerConnectionResolver(new Serializer());
+            case PRODUCER -> new ProducerConnectionResolver();
             case CONSUMER -> new ConsumerConnectionResolver();
             case BROKER -> new BrokerConnectionResolver();
             default -> throw new IllegalArgumentException("Invalid connection type");
