@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.dataflow.consumer.common.RequestType.INITIAL_REQUEST;
+
 @Slf4j
 @Builder(access = AccessLevel.PRIVATE)
 public class ConsumerClient {
@@ -51,7 +53,7 @@ public class ConsumerClient {
 
     public static ConsumerClient createConsumer(String host, int port, String topic) {
         Socket brokerSocket = establishConnectionToBroker(host, port);
-        return ConsumerClient.builder()
+        ConsumerClient consumerClient = ConsumerClient.builder()
                 .id(UUID.randomUUID())
                 .bootstrapServer(host)
                 .brokerPort(port)
@@ -60,6 +62,14 @@ public class ConsumerClient {
                 .offset(0)
                 .socket(brokerSocket)
                 .build();
+
+        NodeRequest initialRequest = NodeRequest.builder()
+                .nodeId(consumerClient.id)
+                .connectionType(CONSUMER_CONNECTION_TYPE)
+                .requestType(INITIAL_REQUEST)
+                .build();
+        SocketCommunicator.sendMessage(brokerSocket, initialRequest.asJsonString());
+        return consumerClient;
     }
 
     public void connect() {
