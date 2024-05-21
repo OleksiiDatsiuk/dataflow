@@ -13,12 +13,9 @@ import java.net.Socket;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class SocketCommunicator {
 
-    public static void sendMessage(Socket clientSocket, String message) {
-        try (PrintWriter streamWriter = new PrintWriter(clientSocket.getOutputStream(), true)) {
-            streamWriter.println(message);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to send message to a client socket", e);
-        }
+    public static void sendMessage(PrintWriter socketPrintWriter, String message) {
+        socketPrintWriter.println(message);
+        socketPrintWriter.flush();
     }
 
     public static BufferedReader receiveMessage(Socket socket) {

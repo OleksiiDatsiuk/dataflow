@@ -12,8 +12,7 @@ import org.dataflow.consumer.serializer.Serializer;
 import org.dataflow.consumer.util.SocketCommunicator;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 import java.util.UUID;
@@ -48,11 +47,18 @@ public class ConsumerClient {
     private long offset;
 
     private Socket socket;
-    private InputStream inputStream;
-    private OutputStream outputStream;
+    private PrintWriter printWriter;
 
     public static ConsumerClient createConsumer(String host, int port, String topic) {
         Socket brokerSocket = establishConnectionToBroker(host, port);
+
+        PrintWriter brokerWriter;
+        try {
+            brokerWriter = new PrintWriter(brokerSocket.getOutputStream(), true);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         ConsumerClient consumerClient = ConsumerClient.builder()
                 .id(UUID.randomUUID())
                 .bootstrapServer(host)
@@ -61,6 +67,7 @@ public class ConsumerClient {
                 .partition(0)
                 .offset(0)
                 .socket(brokerSocket)
+                .printWriter(brokerWriter)
                 .build();
 
         NodeRequest initialRequest = NodeRequest.builder()
@@ -68,17 +75,9 @@ public class ConsumerClient {
                 .connectionType(CONSUMER_CONNECTION_TYPE)
                 .requestType(INITIAL_REQUEST)
                 .build();
-        SocketCommunicator.sendMessage(brokerSocket, initialRequest.asJsonString());
-        return consumerClient;
-    }
 
-    public void connect() {
-        try {
-            this.inputStream = socket.getInputStream();
-            this.outputStream = socket.getOutputStream();
-        } catch (IOException e) {
-            log.error("Failed to obtain output/input stream! Check whether broker is working");
-        }
+        consumerClient.printWriter.println(initialRequest.asJsonString());
+        return consumerClient;
     }
 
     public void consume(Consumer<String> consumer) {
@@ -90,7 +89,7 @@ public class ConsumerClient {
                     .message(new ConsumerMessage(topicName, partition, offset).asJsonString())
                     .build();
 
-            SocketCommunicator.sendMessage(socket, nodeRequest.asJsonString());
+            SocketCommunicator.sendMessage(printWriter, nodeRequest.asJsonString());
             String unparsedMessages = SocketCommunicator.receiveMessage(socket).lines().collect(Collectors.joining());
 
             if (unparsedMessages.isBlank()) {
@@ -128,7 +127,7 @@ public class ConsumerClient {
                 .message(new ConsumerMessage(topicName, partition, offset).asJsonString())
                 .build();
 
-        SocketCommunicator.sendMessage(socket, ackRequest.asJsonString());
+        SocketCommunicator.sendMessage(printWriter, ackRequest.asJsonString());
     }
 
     private void commitOffset(long newOffset) {
@@ -139,7 +138,7 @@ public class ConsumerClient {
                 .message(new ConsumerMessage(topicName, partition, newOffset).asJsonString())
                 .build();
 
-        SocketCommunicator.sendMessage(socket, commitRequest.asJsonString());
+        SocketCommunicator.sendMessage(printWriter, commitRequest.asJsonString());
     }
 
     public void disconnect() {

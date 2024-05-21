@@ -1,5 +1,6 @@
 package org.dataflow.connection.resolver;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dataflow.broker.ManagedBroker;
 import org.dataflow.data.Partition;
 import org.dataflow.data.Topic;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class ConsumerConnectionResolver implements Resolvable {
 
     private final ManagedBroker managedBroker = ManagedBroker.getInstance();
@@ -25,12 +27,15 @@ public class ConsumerConnectionResolver implements Resolvable {
     public void resolve(BrokerConnection brokerConnection, NodeRequest nodeRequest) {
         switch (nodeRequest.requestType()) {
             case BASIC_REQUEST:
+                log.info("Handling BASIC consumer request");
                 handleBasicRequest(brokerConnection, nodeRequest);
                 break;
             case ACK_REQUEST:
+                log.info("Handling ACK consumer request");
                 handleAcknowledgeRequest(nodeRequest);
                 break;
             case COMMIT_OFFSET_REQUEST:
+                log.info("Handling COMMIT_OFFSET consumer request");
                 handleCommitOffsetRequest(brokerConnection, nodeRequest);
                 break;
             default:
@@ -49,7 +54,8 @@ public class ConsumerConnectionResolver implements Resolvable {
         Topic topic = managedBroker.getTopic(consumerMessage.getTopic());
 
         if (topic == null) {
-            throw new IllegalArgumentException("Topic with name " + consumerMessage.getTopic() + " does not exist");
+            log.info("Topic with name {} does not exist", consumerMessage.getTopic());
+            return new ArrayList<>();
         }
 
         long lastOffset = getLastOffsetForConsumer(brokerConnection.socket(), consumerMessage.getTopic());
