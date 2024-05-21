@@ -1,8 +1,15 @@
 package org.dataflow.broker;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dataflow.connection.ConnectionManager;
-import org.dataflow.data.serializer.Serializer;
+
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class ManagedBroker extends AbstractBroker{
@@ -11,9 +18,15 @@ public class ManagedBroker extends AbstractBroker{
 
     private final ConnectionManager connectionManager;
 
+    @Getter
+    protected final Map<Socket, Map<String, Long>> consumerOffsets = new HashMap<>();
+
+    @Getter
+    protected final Map<UUID, Set<String>> acknowledgments = new ConcurrentHashMap<>();
+
     private ManagedBroker(int port, String name) {
         super(port, name);
-        connectionManager = new ConnectionManager(new Serializer());
+        connectionManager = new ConnectionManager();
     }
 
     public static ManagedBroker getInstance(int port, String name) {

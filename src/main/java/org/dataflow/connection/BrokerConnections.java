@@ -26,7 +26,6 @@ public class BrokerConnections {
         }
 
         brokerConnections.put(nodeRequest.nodeId(), new BrokerConnection(connectionType, socket));
-        SocketCommunicator.sendMessage(socket, "Connection registered successfully!");
 
         log.info("Registered connection of type {} with address {}", connectionType, socket.getInetAddress().getHostAddress());
     }

@@ -4,10 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.dataflow.exception.InternalServerError;
 import org.dataflow.util.SocketCommunicator;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,13 +68,23 @@ public abstract class AbstractServer {
     private void handleClient(Socket clientSocket, BiConsumer<String, Socket> subscriber) {
         log.info("Successfully established connection to {}", clientSocket.getInetAddress());
 
-        while (!clientSocket.isClosed()){
-            String input = SocketCommunicator.receiveMessage(clientSocket);
-            if (input.isEmpty()) {
-                continue;
-            }
+        BufferedReader bufferedReader;
+        try {
+            bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), Charset.forName("UTF-8")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-            executorService.execute(() -> subscriber.accept(input, clientSocket));
+        while (!clientSocket.isClosed()) {
+            try {
+                String input = SocketCommunicator.receiveMessage(bufferedReader);
+                if (!input.isEmpty()) {
+                    executorService.execute(() -> subscriber.accept(input, clientSocket));
+                }
+            } catch (Exception e) {
+                log.error("Error while receiving message", e);
+                break;
+            }
         }
     }
 

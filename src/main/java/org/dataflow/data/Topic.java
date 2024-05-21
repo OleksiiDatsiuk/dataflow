@@ -2,6 +2,7 @@ package org.dataflow.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.dataflow.dto.ToConsumeMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,11 +46,16 @@ public class Topic {
         return consumerOffsets.getOrDefault(consumerId, new HashMap<>()).getOrDefault(partitionId, 0);
     }
 
-    public List<String> getMessagesForConsumer(UUID consumerId, int partitionId, int maxMessages) {
+    public List<ToConsumeMessage> getMessagesForConsumer(UUID consumerId, int partitionId, int maxMessages) {
         Partition partition = partitions.get(partitionId);
         int currentOffset = getOffset(consumerId, partitionId);
-        List<String> messages = partition.getMessagesFromOffset(currentOffset, maxMessages);
-        commitOffset(consumerId, partitionId, currentOffset + messages.size());
+        List<String> rawMessages = partition.getMessagesFromOffset(currentOffset, maxMessages);
+        List<ToConsumeMessage> messages = new ArrayList<>();
+        for (String message : rawMessages) {
+            messages.add(new ToConsumeMessage(message, partitionId, currentOffset));
+            currentOffset++;
+        }
+        commitOffset(consumerId, partitionId, currentOffset);
         return messages;
     }
 
@@ -77,5 +83,4 @@ public class Topic {
         }
 
     }
-
 }

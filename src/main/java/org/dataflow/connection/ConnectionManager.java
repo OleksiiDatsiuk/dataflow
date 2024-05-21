@@ -10,15 +10,10 @@ import java.net.Socket;
 
 public class ConnectionManager {
 
-    private final Serializer serializer;
     private final BrokerConnections brokerConnections = BrokerConnections.getInstance();
 
-    public ConnectionManager(Serializer serializer) {
-        this.serializer = serializer;
-    }
-
     public void processConnection(String message, Socket connectedSocket) {
-        NodeRequest nodeRequest = serializer.parseToNodeRequest(message)
+        NodeRequest nodeRequest = Serializer.parseToNodeRequest(message)
                 .orElseThrow(() -> new InternalServerError("Invalid message received!"));
 
         if (nodeRequest.requestType() == RequestType.INITIAL_REQUEST) {
