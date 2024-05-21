@@ -4,7 +4,7 @@ import org.dataflow.producer.client.ProducerClient;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         ProducerClient producerClient = new ProducerClient("localhost", 2023);
         int counter = 0;
         while (true) {
